@@ -4,7 +4,7 @@
    fallback, so the map still works offline after the first successful visit,
    but picks up updates whenever there's a connection. */
 
-const VERSION = 'v14';
+const VERSION = 'v16';
 const SHELL_CACHE = 'ap-shell-' + VERSION;
 const RUNTIME_CACHE = 'ap-runtime-' + VERSION;
 
