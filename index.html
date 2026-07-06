@@ -20,13 +20,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#1B2A41; --paper:#FBF6ED; --paper-2:#F1E9D7;
     --cobalt:#2464B4; --sun:#F2B705; --coral:#E85A4F; --teal:#159895; --violet:#7B4B94;
     --line: rgba(27,42,65,0.14);
     --cn:'Noto Sans SC','Space Grotesk',sans-serif;
+    --cnh:'Noto Serif SC',serif;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{
@@ -66,7 +67,7 @@
   .cover.open{ transform: translateX(-104%) rotateY(-25deg); opacity:0; pointer-events:none; }
   .crest{ width:82px;height:82px;border-radius:50%; border:2px solid rgba(242,183,5,0.85);
     display:flex;align-items:center;justify-content:center;font-size:36px;}
-  .cover h1{ font-family:'Fraunces',var(--cn); color:var(--paper); text-align:center;
+  .cover h1{ font-family:'Fraunces',var(--cnh); color:var(--paper); text-align:center;
     font-size:30px; letter-spacing:4px; margin:22px 0 6px; font-weight:600;}
   .cover .sub{ color:rgba(251,246,237,0.7); font-family:'JetBrains Mono',monospace;
     font-size:10px; letter-spacing:3px; text-transform:uppercase;}
@@ -76,7 +77,7 @@
   .pp-header{ padding:16px 22px 12px; border-bottom:1px solid var(--line); flex-shrink:0;}
   .pp-header .label{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px;
     color:var(--cobalt); text-transform:uppercase;}
-  .pp-header h2{ font-family:'Fraunces',var(--cn); font-size:21px; margin:2px 0 0; font-weight:600;}
+  .pp-header h2{ font-family:'Fraunces',var(--cnh); font-size:21px; margin:2px 0 0; font-weight:600;}
 
   .pages{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:22px; position:relative;}
   .page{ display:none; animation:fadeIn .45s ease;}
@@ -87,7 +88,7 @@
   .bio-hero{ position:relative; overflow:hidden; padding:2px 0 0; margin-bottom:22px;}
   .bio-hero .role{ font-family:var(--cn); font-size:12px;
     letter-spacing:2px; color:rgba(27,42,65,0.5);}
-  .bio-hero .name{ font-family:'Fraunces',var(--cn); font-weight:900;
+  .bio-hero .name{ font-family:'Fraunces',var(--cnh); font-weight:900;
     font-size:32px; line-height:1.15; margin:6px 0 0; color:var(--ink);}
   .photo-slot{ width:104px;height:130px; border:1.5px dashed var(--line); border-radius:8px;
     float:right; margin-left:14px; display:flex;align-items:center;justify-content:center;
@@ -100,7 +101,7 @@
   .bio-grid dd{ margin:0; font-weight:500; font-size:17px;}
   .bio-grid dd b{ color:var(--ink); font-weight:700;}
   .quote{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line);
-    font-family:'Fraunces',serif; font-size:16px; font-style:italic;
+    font-family:'Fraunces',var(--cnh); font-size:16px; font-style:italic;
     color:rgba(27,42,65,0.66); line-height:1.75; letter-spacing:.2px;}
   .backup-row{ display:flex; gap:10px; justify-content:center; margin-top:56px;}
   .backup-row .icon-btn{ width:32px;height:32px; opacity:.35; color:var(--ink);}
@@ -114,7 +115,7 @@
     border:2px solid var(--c); color:var(--c); font-family:'JetBrains Mono',monospace; font-weight:700;
     font-size:13px; display:flex;align-items:center;justify-content:center; text-align:center; padding:2px;}
   .climb-card .cinfo{ flex:1; min-width:0;}
-  .climb-card .cinfo h4{ margin:0 0 3px; font-family:'Fraunces',var(--cn); font-size:16px;
+  .climb-card .cinfo h4{ margin:0 0 3px; font-family:'Fraunces',var(--cnh); font-size:16px;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .climb-card .cinfo p{ margin:0; font-size:12px; color:rgba(27,42,65,0.6);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -144,7 +145,7 @@
   .t-dot{ position:absolute; left:4px; top:50%; transform:translateY(-50%); width:11px;height:11px;
     border-radius:50%; background:var(--paper); border:3px solid var(--cobalt);}
   .t-content{ margin-left:22px; display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
-  .t-city{ font-family:'Fraunces',var(--cn); font-weight:600; font-size:15px; color:var(--ink);}
+  .t-city{ font-family:'Fraunces',var(--cnh); font-weight:600; font-size:15px; color:var(--ink);}
   .t-date{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(27,42,65,0.5); white-space:nowrap; flex-shrink:0;}
 
   /* STAMPS */
@@ -169,7 +170,7 @@
     opacity:0; transition:opacity .4s ease; z-index:4;}
   .stamp.has-photo:hover .thumb{ opacity:.30; }
   .stamp .icon{ font-size:22px; margin-bottom:4px; position:relative; z-index:4;}
-  .stamp .city{ font-family:'Fraunces',serif; font-weight:700; font-size:14px; line-height:1.15;
+  .stamp .city{ font-family:'Fraunces',var(--cnh); font-weight:700; font-size:14px; line-height:1.15;
     color:var(--c); position:relative; z-index:4;}
   .stamp .code{ font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px;
     color:rgba(27,42,65,0.5); margin-top:3px; position:relative; z-index:4;}
@@ -197,7 +198,7 @@
     display:flex;align-items:center;justify-content:center;font-size:22px;
     border:2px solid var(--c); color:var(--c); background:var(--paper); cursor:pointer;}
   .locked .txt{ flex:1; min-width:0; cursor:pointer;}
-  .locked .txt h4{ margin:0 0 2px; font-family:'Fraunces',var(--cn); font-size:17px;}
+  .locked .txt h4{ margin:0 0 2px; font-family:'Fraunces',var(--cnh); font-size:17px;}
   .locked .txt p{ margin:0; font-size:12px; color:rgba(27,42,65,0.6);}
   .locked .hint{ margin-top:6px; font-size:12.5px; color:var(--c); display:none; line-height:1.5;}
   .locked.revealed .hint{ display:block;}
@@ -237,12 +238,12 @@
   .unplaced{ margin-top:8px; font-size:11.5px; color:rgba(251,246,237,0.6); line-height:1.7;}
   .unplaced .chip{ display:inline-block; background:rgba(251,246,237,0.15); color:var(--paper);
     border-radius:999px; padding:3px 10px; margin:3px 4px 0 0; font-family:var(--cn); font-size:11px;}
-  #map-readout{ text-align:left; margin-top:6px; min-height:18px; font-family:'Fraunces',var(--cn);
+  #map-readout{ text-align:left; margin-top:6px; min-height:18px; font-family:'Fraunces',var(--cnh);
     font-style:italic; color:var(--sun); font-size:13px;}
 
   /* BIRTHDAY */
   .bday-wrap{ text-align:center; padding-top:6px;}
-  .bday-wrap h3{ font-family:'Fraunces',var(--cn); font-size:24px; margin-bottom:6px;}
+  .bday-wrap h3{ font-family:'Fraunces',var(--cnh); font-size:24px; margin-bottom:6px;}
   .seal-btn{ margin-top:18px; background:var(--ink); color:var(--paper); border:none;
     border-radius:999px; padding:14px 28px; font-family:var(--cn); font-weight:600; font-size:14px;
     cursor:pointer; letter-spacing:.5px;}
@@ -250,7 +251,7 @@
   .letter{ margin-top:22px; text-align:left; font-size:15px; line-height:2;
     background:var(--paper-2); border-radius:14px; padding:20px; display:none;}
   .letter.show{ display:block; animation:fadeIn .5s ease;}
-  .letter .wish{ display:block; font-family:'Fraunces',serif; font-style:italic;
+  .letter .wish{ display:block; font-family:'Fraunces',var(--cnh); font-style:italic;
     font-size:16px; color:var(--coral); letter-spacing:.3px;}
   .ticket-reveal{ display:none; margin-top:22px; animation:fadeIn .5s ease;}
   .ticket-reveal.show{ display:block;}
@@ -266,7 +267,7 @@
   .tk-field{ margin-bottom:11px; min-width:0;}
   .tk-field label{ display:block; font-family:'JetBrains Mono',monospace; font-size:7.5px;
     letter-spacing:.5px; color:rgba(27,42,65,.45); margin-bottom:3px; white-space:nowrap;}
-  .tk-field b{ font-family:'Fraunces',var(--cn); font-size:14px; color:var(--ink); font-weight:600;
+  .tk-field b{ font-family:'Fraunces',var(--cnh); font-size:14px; color:var(--ink); font-weight:600;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
   .t-route{ display:flex; align-items:center; gap:8px; margin-bottom:11px;}
   .t-route .tk-field{ flex:1; min-width:0; margin-bottom:0;}
@@ -281,7 +282,7 @@
     letter-spacing:.2px; white-space:nowrap;}
   .barcode{ width:82%; height:28px;
     background: repeating-linear-gradient(90deg, var(--paper) 0 2px, transparent 2px 4px, var(--paper) 4px 5px, transparent 5px 8px);}
-  .ticket-note{ text-align:center; margin-top:12px; font-family:'Fraunces',var(--cn); font-style:italic; color:rgba(27,42,65,.6); font-size:13px;}
+  .ticket-note{ text-align:center; margin-top:12px; font-family:'Fraunces',var(--cnh); font-style:italic; color:rgba(27,42,65,.6); font-size:13px;}
   .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden;}
   .tile{ position:absolute; top:-20px; width:9px;height:9px; opacity:.9; animation:fall linear forwards;}
   @keyframes fall{ to{ transform: translateY(110vh) rotate(540deg); opacity:.2;}}
@@ -309,7 +310,7 @@
     border:1.5px solid var(--line); background:var(--paper); color:var(--ink); font-size:15px;
     cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2;}
   .modal-close:active{ transform:scale(.92);}
-  .modal h3{ font-family:'Fraunces',var(--cn); font-size:22px; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
+  .modal h3{ font-family:'Fraunces',var(--cnh); font-size:22px; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
   .modal .code2{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(27,42,65,0.5);
     letter-spacing:1px; margin-bottom:18px;}
   .field{ margin-bottom:16px;}
@@ -343,7 +344,7 @@
   .gate-card{ width:100%; max-width:340px; text-align:center;}
   .gate-card .crest{ width:70px;height:70px;border-radius:50%; margin:0 auto 18px;
     border:2px solid rgba(242,183,5,0.85); display:flex;align-items:center;justify-content:center;font-size:30px;}
-  .gate-card h2{ font-family:'Fraunces',var(--cn); color:var(--paper); font-size:22px; margin:0 0 6px; letter-spacing:1px;}
+  .gate-card h2{ font-family:'Fraunces',var(--cnh); color:var(--paper); font-size:22px; margin:0 0 6px; letter-spacing:1px;}
   .gate-card p{ color:rgba(251,246,237,0.6); font-size:13px; margin:0 0 22px;}
   .gate-card input{ width:100%; text-align:center; letter-spacing:4px; font-size:18px;
     font-family:'JetBrains Mono',monospace; padding:14px; border-radius:12px; border:1.5px solid rgba(251,246,237,0.25);
@@ -428,7 +429,7 @@
       <div class="toolbar">
         <button class="btn primary" id="add-climb">＋ 添加路线</button>
       </div>
-      <p class="hint-line">记路线、难度、岩馆或岩场，点卡片查看/编辑</p>
+      <p class="hint-line">记路线、难度、岩馆或岩场，点击卡片查看、编辑</p>
       <div class="climb-grid" id="climb-grid"></div>
     </div>
 
@@ -470,7 +471,7 @@
       <div class="toolbar">
         <button class="btn primary" id="add-future">＋ 添加目的地</button>
       </div>
-      <p class="hint-line">点卡片看提示，✓ 标记已盖章（自动移到「已盖章」），✕ 删除</p>
+      <p class="hint-line">点卡片看提示，✓ 标记已盖章，✕ 删除</p>
       <div class="locked-grid" id="locked-grid"></div>
     </div>
 
