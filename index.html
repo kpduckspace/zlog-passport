@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>奇遇护照</title>
+
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="奇遇护照">
+<meta name="theme-color" content="#16202f">
+<meta name="description" content="一本专属的生日冒险护照">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A41; --paper:#FBF6ED; --paper-2:#F1E9D7;
+    --cobalt:#2464B4; --sun:#F2B705; --coral:#E85A4F; --teal:#159895; --violet:#7B4B94;
+    --line: rgba(27,42,65,0.14);
+    --cn:'Noto Sans SC','Space Grotesk',sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(circle at 20% 8%, #24334c 0%, #16202f 55%, #0f1522 100%);
+    min-height:100vh; min-height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--cn); color:var(--ink); padding:20px; overflow-x:hidden;
+  }
+  .passport{
+    position:relative; width:100%; max-width:470px;
+    height:min(820px, 94vh); height:min(820px, 94dvh);
+    background:var(--paper); border-radius:20px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.05);
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+
+  .cover{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 28% 18%, rgba(36,100,180,0.55), transparent 55%),
+      radial-gradient(circle at 78% 78%, rgba(232,90,79,0.45), transparent 55%),
+      linear-gradient(160deg, #1B2A41 0%, #223252 60%, #17223a 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:48px 30px 40px; cursor:pointer; z-index:20;
+    transition: transform .7s cubic-bezier(.6,0,.2,1), opacity .6s ease;
+  }
+  .cover.open{ transform: translateX(-104%) rotateY(-25deg); opacity:0; pointer-events:none; }
+  .crest{ width:82px;height:82px;border-radius:50%; border:2px solid rgba(242,183,5,0.85);
+    display:flex;align-items:center;justify-content:center;font-size:36px;}
+  .cover h1{ font-family:'Fraunces',var(--cn); color:var(--paper); text-align:center;
+    font-size:30px; letter-spacing:4px; margin:22px 0 6px; font-weight:600;}
+  .cover .sub{ color:rgba(251,246,237,0.7); font-family:'JetBrains Mono',monospace;
+    font-size:10px; letter-spacing:3px; text-transform:uppercase;}
+  .cover .tap{ color:rgba(251,246,237,0.55); font-size:13px; animation:pulse 2s infinite ease-in-out;}
+  @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+  .pp-header{ padding:16px 22px 12px; border-bottom:1px solid var(--line); flex-shrink:0;
+    padding-top:calc(16px + env(safe-area-inset-top)); }
+  .pp-header .label{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px;
+    color:var(--cobalt); text-transform:uppercase;}
+  .pp-header h2{ font-family:'Fraunces',var(--cn); font-size:21px; margin:2px 0 0; font-weight:600;}
+
+  .pages{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:22px; position:relative;}
+  .page{ display:none; animation:fadeIn .45s ease;}
+  .page.active{ display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* BIO */
+  .bio-hero{ position:relative; overflow:hidden; padding:2px 0 0; margin-bottom:22px;}
+  .bio-hero .role{ font-family:var(--cn); font-size:12px;
+    letter-spacing:2px; color:rgba(27,42,65,0.5);}
+  .bio-hero .name{ font-family:'Fraunces',var(--cn); font-weight:900;
+    font-size:32px; line-height:1.15; margin:6px 0 0; color:var(--ink);}
+  .photo-slot{ width:104px;height:130px; border:1.5px dashed var(--line); border-radius:8px;
+    float:right; margin-left:14px; display:flex;align-items:center;justify-content:center;
+    font-size:13px;color:rgba(27,42,65,0.45); text-align:center;line-height:1.5;
+    position:relative; overflow:hidden; cursor:pointer; background:var(--paper-2);}
+  .photo-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .bio-grid{ display:grid; grid-template-columns:auto 1fr; gap:15px 18px; font-size:16px; margin-top:4px;}
+  .bio-grid dt{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(27,42,65,0.5);
+    letter-spacing:1px; align-self:center;}
+  .bio-grid dd{ margin:0; font-weight:500; font-size:17px;}
+  .bio-grid dd b{ color:var(--ink); font-weight:700;}
+  .quote{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line);
+    font-family:'Fraunces',serif; font-size:16px; font-style:italic;
+    color:rgba(27,42,65,0.66); line-height:1.75; letter-spacing:.2px;}
+
+  /* TOOLBAR */
+  .toolbar{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
+  .btn{ font-family:var(--cn); font-weight:600; font-size:13px;
+    border:1.5px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:999px; padding:8px 15px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .btn.primary{ background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .btn:active{ transform:scale(.96);}
+  .hint-line{ font-size:12.5px; color:rgba(27,42,65,0.55); margin:0 0 14px;}
+
+  /* STAMPS */
+  .stamp-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .stamp{ position:relative; aspect-ratio:1; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:10px; cursor:pointer; overflow:hidden;
+    background:var(--paper); border:3px solid var(--c);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--c);
+    transform: rotate(var(--r,-3deg));
+    transition: transform .28s cubic-bezier(.34,1.4,.64,1), box-shadow .28s ease;}
+  .stamp.animate{ animation: stampIn .55s cubic-bezier(.34,1.4,.64,1) backwards;}
+  @keyframes stampIn{0%{transform:scale(.3) rotate(-30deg);opacity:0;}
+    60%{transform:scale(1.08) rotate(4deg);opacity:1;}100%{transform:scale(1) rotate(var(--r,-3deg));opacity:1;}}
+  .stamp:hover{ transform: scale(1.06) rotate(0deg);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--c), 0 10px 22px rgba(0,0,0,0.18);}
+  .stamp .watermark{ position:absolute; font-size:70px; opacity:.10; z-index:0;
+    transition: transform .4s ease, opacity .4s ease;}
+  .stamp:hover .watermark{ transform: scale(1.25) rotate(8deg); opacity:.16;}
+  .stamp .thumb{ position:absolute; inset:0; background-size:cover; background-position:center;
+    opacity:0; transition:opacity .4s ease; }
+  .stamp.has-photo:hover .thumb{ opacity:.30; }
+  .stamp .icon{ font-size:22px; margin-bottom:4px; position:relative; z-index:1;}
+  .stamp .city{ font-family:'Fraunces',serif; font-weight:700; font-size:14px; line-height:1.15;
+    color:var(--c); position:relative; z-index:1;}
+  .stamp .code{ font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px;
+    color:rgba(27,42,65,0.5); margin-top:3px; position:relative; z-index:1;}
+  .stamp .date{ font-family:'JetBrains Mono',monospace; font-size:8.5px; margin-top:2px;
+    color:var(--c); position:relative; z-index:1; font-weight:600;}
+  .stamp .pcount{ position:absolute; top:8px; right:10px; font-size:9px; z-index:1;
+    color:var(--c); font-family:'JetBrains Mono',monospace; font-weight:600;}
+
+  /* LOCKED */
+  .locked-grid{ display:flex; flex-direction:column; gap:12px;}
+  .locked{ display:flex; align-items:center; gap:14px; padding:14px;
+    border:1.5px dashed var(--line); border-radius:14px; transition:background .25s ease;}
+  .locked.revealed{ background:var(--paper-2); border-color:var(--c);}
+  .locked .badge{ width:48px;height:48px;border-radius:50%; flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    border:2px solid var(--c); color:var(--c); background:var(--paper); cursor:pointer;}
+  .locked .txt{ flex:1; min-width:0; cursor:pointer;}
+  .locked .txt h4{ margin:0 0 2px; font-family:'Fraunces',var(--cn); font-size:17px;}
+  .locked .txt p{ margin:0; font-size:12px; color:rgba(27,42,65,0.6);}
+  .locked .hint{ margin-top:6px; font-size:12.5px; color:var(--c); display:none; line-height:1.5;}
+  .locked.revealed .hint{ display:block;}
+  .locked .acts{ display:flex; flex-direction:column; gap:6px;}
+  .icon-btn{ width:34px;height:34px;border-radius:50%; border:1.5px solid var(--line);
+    background:var(--paper); cursor:pointer; font-size:15px; display:flex;align-items:center;justify-content:center;}
+  .icon-btn.go{ border-color:var(--teal); color:var(--teal);}
+  .icon-btn.del{ border-color:var(--coral); color:var(--coral);}
+  .icon-btn:active{ transform:scale(.9);}
+
+  /* MAP */
+  .map-wrap{ position:relative; border-radius:16px; overflow:hidden; aspect-ratio:2/1;
+    background:#0f1a2b; box-shadow: inset 0 0 40px rgba(0,0,0,.4);}
+  svg.worldmap{ width:100%; height:100%; display:block; touch-action:none; cursor:grab;}
+  svg.worldmap:active{ cursor:grabbing;}
+  .grat{ stroke: rgba(251,246,237,0.08); stroke-width:0.6; fill:none;}
+  .route{ stroke: #fff; stroke-width:1.6; fill:none; stroke-dasharray:5 5; stroke-linecap:round; opacity:.85;}
+  .pin-done circle.dot{ fill: var(--coral); stroke:#fff; stroke-width:1.6; }
+  .pin-done circle.halo{ fill: var(--coral); opacity:.3; animation: ping 2.4s infinite ease-out;}
+  @keyframes ping{0%{r:5; opacity:.55;}100%{r:16; opacity:0;}}
+  .pin-future circle.dot{ fill:#16233b; stroke: var(--sun); stroke-width:2; stroke-dasharray:2.5 2;}
+  .pin-lab{ font-family:'Noto Sans SC','JetBrains Mono',monospace; font-size:9px; fill:#fff; font-weight:600;
+    paint-order:stroke; stroke:#0f1a2b; stroke-width:2.4px; }
+  .map-ctrls{ position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:6px; z-index:3;}
+  .map-ctrls button{ width:34px;height:34px;border-radius:9px;border:none;
+    background:rgba(251,246,237,.92); color:var(--ink); font-size:17px; font-weight:700; cursor:pointer;
+    display:flex;align-items:center;justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.35);}
+  .map-tip{ position:absolute; left:12px; top:12px; z-index:3; font-size:10.5px;
+    color:rgba(251,246,237,.7); background:rgba(15,26,43,.55); padding:4px 9px; border-radius:999px;
+    font-family:var(--cn);}
+  .map-legend{ display:flex; gap:16px; margin-top:14px; font-size:12.5px; color:rgba(27,42,65,0.75);}
+  .map-legend b{ display:inline-flex; align-items:center; gap:6px; font-weight:500;}
+  .dotc{ width:11px;height:11px;border-radius:50%;}
+  .unplaced{ margin-top:12px; font-size:12px; color:rgba(27,42,65,0.6); line-height:1.7;}
+  .unplaced .chip{ display:inline-block; background:var(--paper-2); border-radius:999px;
+    padding:3px 10px; margin:3px 4px 0 0; font-family:var(--cn); font-size:11.5px;}
+  #map-readout{ text-align:center; margin-top:10px; min-height:22px; font-family:'Fraunces',var(--cn);
+    font-style:italic; color:var(--coral); font-size:14px;}
+
+  /* BIRTHDAY */
+  .bday-wrap{ text-align:center; padding-top:6px;}
+  .bday-wrap h3{ font-family:'Fraunces',var(--cn); font-size:24px; margin-bottom:6px;}
+  .seal-btn{ margin-top:18px; background:var(--ink); color:var(--paper); border:none;
+    border-radius:999px; padding:14px 28px; font-family:var(--cn); font-weight:600; font-size:14px;
+    cursor:pointer; letter-spacing:.5px;}
+  .seal-btn:active{ transform:scale(.97);}
+  .letter{ margin-top:22px; text-align:left; font-size:15px; line-height:2;
+    background:var(--paper-2); border-radius:14px; padding:20px; display:none;}
+  .letter.show{ display:block; animation:fadeIn .5s ease;}
+  .letter .wish{ display:block; font-family:'Fraunces',serif; font-style:italic;
+    font-size:16px; color:var(--coral); letter-spacing:.3px;}
+  .ticket-reveal{ display:none; margin-top:22px; animation:fadeIn .5s ease;}
+  .ticket-reveal.show{ display:block;}
+  .ticket{ display:flex; text-align:left; border-radius:16px; overflow:hidden;
+    box-shadow:0 14px 30px rgba(0,0,0,.22); background:var(--paper);}
+  .ticket-main{ flex:1; padding:16px 14px 16px 18px; min-width:0;}
+  .t-brand{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .t-brand .bp{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:1.5px; color:var(--coral); font-weight:600;}
+  .t-brand .no{ font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(27,42,65,.4);}
+  .t-row{ display:flex; gap:12px; margin-bottom:13px;}
+  .t-row > .t-cell{ flex:1; min-width:0;}
+  .t-cell label{ display:block; font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:rgba(27,42,65,.45); margin-bottom:3px;}
+  .t-cell b{ font-family:'Fraunces',var(--cn); font-size:14.5px; color:var(--ink); font-weight:600;}
+  .t-route{ display:flex; align-items:center; gap:10px; margin-bottom:13px;}
+  .t-route .plane{ color:var(--coral); font-size:16px;}
+  .t-route .secret{ color:var(--coral); letter-spacing:3px;}
+  .ticket-stub{ width:92px; flex-shrink:0; background:linear-gradient(160deg,#2464B4,#159895);
+    color:var(--paper); display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:9px; padding:12px 8px; position:relative; text-align:center; border-left:2px dashed rgba(251,246,237,.55);}
+  .ticket-stub::before, .ticket-stub::after{ content:''; position:absolute; left:-10px; width:20px;height:20px;border-radius:50%; background:var(--paper);}
+  .ticket-stub::before{ top:-10px;} .ticket-stub::after{ bottom:-10px;}
+  .ticket-stub .lock{ font-size:20px;}
+  .ticket-stub .cls{ font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.7; letter-spacing:1px;}
+  .barcode{ width:74%; height:32px;
+    background: repeating-linear-gradient(90deg, var(--paper) 0 2px, transparent 2px 4px, var(--paper) 4px 5px, transparent 5px 8px);}
+  .ticket-note{ text-align:center; margin-top:12px; font-family:'Fraunces',var(--cn); font-style:italic; color:rgba(27,42,65,.6); font-size:13px;}
+  .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden;}
+  .tile{ position:absolute; top:-20px; width:9px;height:9px; opacity:.9; animation:fall linear forwards;}
+  @keyframes fall{ to{ transform: translateY(110vh) rotate(540deg); opacity:.2;}}
+
+  /* TABBAR */
+  .tabbar{ display:flex; border-top:1px solid var(--line); flex-shrink:0; background:var(--paper);
+    padding-bottom: env(safe-area-inset-bottom);}
+  .tabbar button{ flex:1; background:none; border:none; padding:11px 2px 13px;
+    font-family:var(--cn); font-size:11px; color:rgba(27,42,65,0.45);
+    cursor:pointer; position:relative;}
+  .tabbar button.active{ color:var(--ink); font-weight:700;}
+  .tabbar button.active::before{ content:''; position:absolute; top:0; left:22%; right:22%;
+    height:3px; border-radius:2px; background:var(--tabcolor,var(--cobalt));}
+  .tabbar button span{ display:block; font-size:17px; margin-bottom:2px;}
+
+  /* MODAL */
+  .modal-bg{ position:fixed; inset:0; background:rgba(15,21,34,0.6); z-index:70;
+    display:none; align-items:flex-end; justify-content:center;}
+  .modal-bg.show{ display:flex; }
+  .modal{ background:var(--paper); width:100%; max-width:470px; border-radius:22px 22px 0 0;
+    padding:24px 22px calc(28px + env(safe-area-inset-bottom)); animation:slideUp .35s cubic-bezier(.2,.8,.2,1);
+    max-height:90vh; overflow-y:auto;}
+  @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .modal .grip{ width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px;}
+  .modal h3{ font-family:'Fraunces',var(--cn); font-size:22px; margin:0 0 4px; display:flex; align-items:center; gap:10px;}
+  .modal .code2{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(27,42,65,0.5);
+    letter-spacing:1px; margin-bottom:18px;}
+  .field{ margin-bottom:16px;}
+  .field label{ display:block; font-family:var(--cn); font-size:12px; font-weight:600;
+    color:rgba(27,42,65,0.55); margin-bottom:7px;}
+  .field input, .field textarea{ width:100%; border:1.5px solid var(--line); border-radius:12px;
+    padding:12px; font-family:var(--cn); font-size:15px; background:var(--paper); color:var(--ink); resize:vertical;}
+  .field textarea{ min-height:80px;}
+  .dates{ display:flex; gap:10px;}
+  .dates > div{ flex:1;}
+  .photo-gallery{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;}
+  .pg-item{ position:relative; width:90px;height:90px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--paper-2);}
+  .pg-item img{ width:100%;height:100%;object-fit:cover;}
+  .pg-item .rm{ position:absolute; top:5px; right:5px; width:22px;height:22px;border-radius:50%;
+    background:rgba(0,0,0,.55); color:#fff; border:none; font-size:12px; cursor:pointer;
+    display:flex;align-items:center;justify-content:center;}
+  .pg-add{ width:90px;height:90px;border-radius:12px;border:2px dashed var(--line);flex-shrink:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;
+    color:rgba(27,42,65,.4);cursor:pointer;}
+  .pg-add small{ font-size:10px; margin-top:2px;}
+  .modal-actions{ display:flex; gap:10px; margin-top:8px;}
+  .modal-actions .btn{ flex:1; justify-content:center; padding:14px;}
+
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001s!important; transition:none!important;} }
+
+  /* ---------- GATE ---------- */
+  .gate{ position:fixed; inset:0; z-index:100; background:
+      radial-gradient(circle at 20% 8%, #24334c 0%, #16202f 55%, #0f1522 100%);
+    display:flex; align-items:center; justify-content:center; padding:24px;}
+  .gate.hidden{ display:none;}
+  .gate-card{ width:100%; max-width:340px; text-align:center;}
+  .gate-card .crest{ width:70px;height:70px;border-radius:50%; margin:0 auto 18px;
+    border:2px solid rgba(242,183,5,0.85); display:flex;align-items:center;justify-content:center;font-size:30px;}
+  .gate-card h2{ font-family:'Fraunces',var(--cn); color:var(--paper); font-size:22px; margin:0 0 6px; letter-spacing:1px;}
+  .gate-card p{ color:rgba(251,246,237,0.6); font-size:13px; margin:0 0 22px;}
+  .gate-card input{ width:100%; text-align:center; letter-spacing:4px; font-size:18px;
+    font-family:'JetBrains Mono',monospace; padding:14px; border-radius:12px; border:1.5px solid rgba(251,246,237,0.25);
+    background:rgba(251,246,237,0.08); color:var(--paper); margin-bottom:14px;}
+  .gate-card input::placeholder{ color:rgba(251,246,237,0.35); letter-spacing:2px;}
+  .gate-card button{ width:100%; padding:14px; border-radius:999px; border:none;
+    background:var(--sun); color:#1B2A41; font-family:var(--cn); font-weight:700; font-size:14.5px; cursor:pointer;}
+  .gate-card button:active{ transform:scale(.97);}
+  .gate-err{ color:var(--coral); font-size:12.5px; margin-top:10px; min-height:16px;}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="crest">🔒</div>
+    <h2>奇遇护照</h2>
+    <p>这本护照是专属的，请输入密码打开</p>
+    <input type="password" id="gate-input" placeholder="••••" inputmode="text" autocomplete="off">
+    <button id="gate-btn">打开护照</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<div class="passport" id="passport">
+
+  <div class="cover" id="cover">
+    <div style="width:100%"></div>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="crest">🌍</div>
+      <h1>奇遇护照</h1>
+      <div class="sub">Adventure&nbsp;Passport</div>
+    </div>
+    <div class="tap">轻触封面，开始翻阅 →</div>
+  </div>
+
+  <div class="pp-header">
+    <div class="label" id="hdr-label">Bio Page</div>
+    <h2 id="hdr-title">持照人信息</h2>
+  </div>
+
+  <div class="pages">
+
+    <!-- BIO -->
+    <div class="page active" id="page-bio">
+      <div class="bio-hero">
+        <div class="role">永远好奇共和国 · 持照人</div>
+        <div class="name">大清早读第七章</div>
+      </div>
+      <div class="photo-slot" id="bio-photo">
+        <input type="file" accept="image/*" id="bio-photo-input" style="display:none">
+        点一下<br>贴张照片
+      </div>
+      <dl class="bio-grid">
+        <dt>职业</dt><dd>攀岩 · 探路 · <b>交朋友</b></dd>
+        <dt>签发日</dt><dd id="issue-date">—</dd>
+        <dt>有效期</dt><dd>无限</dd>
+        <dt>特征</dt><dd>手上常有镁粉，脚下没停过</dd>
+      </dl>
+      <div class="quote">"Routes come and go. Grades come and go. But some experiences stay with you forever."</div>
+    </div>
+
+    <!-- STAMPS -->
+    <div class="page" id="page-stamps">
+      <div class="toolbar">
+        <button class="btn primary" id="add-stamp">＋ 添加盖章</button>
+        <button class="btn" id="sort-stamps">📅 日期 ↓</button>
+      </div>
+      <p class="hint-line">点一下印章，可以添加多张照片、写文字记录、设置盖章日期。</p>
+      <div class="stamp-grid" id="stamp-grid"></div>
+    </div>
+
+    <!-- MAP -->
+    <div class="page" id="page-map">
+      <div class="map-wrap" id="map-wrap"></div>
+      <div class="map-legend">
+        <b><span class="dotc" style="background:var(--coral)"></span>已盖章</b>
+        <b><span class="dotc" style="background:transparent;border:2px solid var(--sun)"></span>待解锁</b>
+      </div>
+      <div id="map-readout"></div>
+      <div class="unplaced" id="unplaced"></div>
+    </div>
+
+    <!-- LOCKED -->
+    <div class="page" id="page-locked">
+      <div class="toolbar">
+        <button class="btn primary" id="add-future">＋ 添加目的地</button>
+      </div>
+      <p class="hint-line">待解锁的目的地 · 点卡片看提示，✓ 标记已盖章（自动移到「已盖章」），✕ 删除。</p>
+      <div class="locked-grid" id="locked-grid"></div>
+    </div>
+
+    <!-- BIRTHDAY -->
+    <div class="page" id="page-bday">
+      <div class="bday-wrap">
+        <div style="font-size:40px;">🎂</div>
+        <h3>生日快乐，护照持有人</h3>
+        <button class="seal-btn" id="seal-btn">拆开这一页的封蜡 💌</button>
+        <div class="letter" id="letter">
+          生日快乐！新的一岁，愿你继续带着镁粉享受新的岩壁挑战，继续拉着朋友们一起闯新的城市，继续把「没试过」变成「这个我干过」。
+          <br><br>
+          愿意的话，把阳朔、冰岛、北极都一个一个盖上章——如果需要人陪着爬、陪着走、陪着看极光，我随时报名。
+          <br><br>
+          <span class="wish">May your heart be very full.</span>
+        </div>
+
+        <button class="seal-btn" id="ticket-btn" style="margin-top:14px;background:var(--coral);">开启一张秘密车票 🎫</button>
+        <div class="ticket-reveal" id="ticket-reveal">
+          <div class="ticket">
+            <div class="ticket-main">
+              <div class="t-brand"><span class="bp">BOARDING PASS · 秘密旅行</span><span class="no">NO. 08·15</span></div>
+              <div class="t-row">
+                <div class="t-cell"><label>PASSENGER 旅客</label><b>大清早读第七章</b></div>
+                <div class="t-cell"><label>SEAT 座位</label><b>1A · 靠窗</b></div>
+              </div>
+              <div class="t-route">
+                <div class="t-cell"><label>FROM 出发</label><b>London</b></div>
+                <span class="plane">✈</span>
+                <div class="t-cell"><label>TO 目的地</label><b class="secret">? ? ?</b></div>
+              </div>
+              <div class="t-row">
+                <div class="t-cell"><label>DATE 日期</label><b>15–16 Aug</b></div>
+                <div class="t-cell"><label>DRESS CODE 着装</label><b>舒适 · Comfy</b></div>
+              </div>
+            </div>
+            <div class="ticket-stub">
+              <div class="lock">🔒</div>
+              <div class="cls">地点保密<br>CLASSIFIED</div>
+              <div class="barcode"></div>
+            </div>
+          </div>
+          <p class="ticket-note">目的地暂时保密，其余的见面再说 😈</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <button data-page="bio" data-color="#2464B4" class="active"><span>📖</span>信息页</button>
+    <button data-page="stamps" data-color="#159895"><span>🧳</span>已盖章</button>
+    <button data-page="locked" data-color="#F2B705"><span>🔒</span>待解锁</button>
+    <button data-page="map" data-color="#E85A4F"><span>🗺️</span>世界地图</button>
+    <button data-page="bday" data-color="#7B4B94"><span>🎉</span>生日限定</button>
+  </div>
+</div>
+
+<div class="confetti-layer" id="confetti"></div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal"><div class="grip"></div><div id="modal-body"></div></div>
+</div>
+
+<script>
+/* ============ STORAGE ============ */
+const KEY_S='ap_stamps_v3', KEY_F='ap_future_v4', KEY_BIO='ap_bio_v3', KEY_SORT='ap_sort_v3';
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){alert('存储空间已满（照片太多）。删掉几张照片再试试。');}};
+
+const seedStamps=[
+  {id:'s1',city:'Stockholm',country:'Sweden',code:'ARN·SE',icon:'⚓',mark:'🚢',color:'#2464B4',lat:59.33,lon:18.07,start:'2026-05-09',end:'2026-05-10',note:'Cool archipelago blue — a first taste of Nordic slow living.',photos:[],builtIn:true},
+  {id:'s2',city:'Cannes',country:'France',code:'NCE·FR',icon:'🎬',mark:'🎞️',color:'#E85A4F',lat:43.55,lon:7.02,start:'2026-05-14',end:'2026-05-17',note:'Cinematic afternoons on the Cote d\'Azur — even the sun looked filtered.',photos:[],builtIn:true},
+  {id:'s3',city:'Taipei · Tainan',country:'Taiwan',code:'TPE·TW',icon:'🥟',mark:'🏙️',color:'#F2B705',lat:24.0,lon:120.8,start:'2026-05-21',end:'2026-05-26',note:'Night-market smoke and old-town lanes — could walk it all day.',photos:[],builtIn:true},
+  {id:'s4',city:'Hong Kong',country:'Hong Kong',code:'HKG·HK',icon:'🌃',mark:'🏮',color:'#7B4B94',lat:22.32,lon:114.17,start:'2026-05-27',end:'2026-05-31',note:'Victoria Harbour lights and milk-tea warmth in a city that never slows down.',photos:[],builtIn:true},
+  {id:'s5',city:'Prague',country:'Czechia',code:'PRG·CZ',icon:'🏰',mark:'🏰',color:'#2464B4',lat:50.08,lon:14.44,start:'2026-06-05',end:'2026-06-07',note:'Cobblestones under fairytale spires — every corner a postcard.',photos:[],builtIn:true},
+  {id:'s6',city:'Chengdu',country:'China',code:'CTU·CN',icon:'🐼',mark:'🌶️',color:'#159895',lat:30.67,lon:104.07,start:'2026-06-12',end:'2026-06-21',note:'Mala heals the stomach, lazy pandas heal the heart.',photos:[],builtIn:true},
+  {id:'s7',city:'Amsterdam',country:'Netherlands',code:'AMS·NL',icon:'🚲',mark:'🌷',color:'#E85A4F',lat:52.37,lon:4.90,start:'2026-07-04',end:'2026-07-05',note:'Cycling free along the canals, wanting to step into every gallery.',photos:[],builtIn:true},
+];
+const seedFuture=[
+  {id:'f1',city:'Yangshuo',country:'China',icon:'🧗',color:'#159895',lat:24.78,lon:110.49,hint:'喀斯特石灰岩的天堂——攀岩爱好者的下一本「完攀日记」，该从这里写。'},
+  {id:'f2',city:'Iceland',country:'Iceland',icon:'🌋',color:'#2464B4',lat:64.13,lon:-21.9,hint:'冰与火并存的岛，黑沙滩和蓝冰洞都在等一次说走就走。'},
+  {id:'f3',city:'The Arctic',country:'—',icon:'🧊',color:'#F2B705',lat:80,lon:15,hint:'世界尽头的白色旷野，据说极光会让人暂时忘记时间。'},
+];
+
+let stamps=load(KEY_S,seedStamps);
+let future=load(KEY_F,seedFuture);
+let bioPhoto=load(KEY_BIO,null);
+let sortDir=load(KEY_SORT,'asc');
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const uid=()=>'x'+Math.random().toString(36).slice(2,8);
+const palette=['#2464B4','#E85A4F','#159895','#F2B705','#7B4B94'];
+const marks=['📍','🗺️','✈️','🌍','⛰️'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function compress(file,cb){
+  const r=new FileReader();
+  r.onload=e=>{ const img=new Image();
+    img.onload=()=>{ const max=900; let w=img.width,h=img.height;
+      if(w>h&&w>max){h*=max/w;w=max;} else if(h>max){w*=max/h;h=max;}
+      const c=document.createElement('canvas'); c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.72)); };
+    img.src=e.target.result; };
+  r.readAsDataURL(file);
+}
+function pd(d){ if(!d)return null; const p=d.split('-'); return {y:+p[0],m:+p[1],day:+p[2]}; }
+function fmtRange(start,end,withYear){
+  const s=pd(start); if(!s)return ''; const e=pd(end);
+  const yr=withYear?(' '+s.y):'';
+  if(!e||(e.day===s.day&&e.m===s.m&&e.y===s.y)) return s.day+' '+MON[s.m-1]+yr;
+  if(e.m===s.m&&e.y===s.y) return s.day+'–'+e.day+' '+MON[s.m-1]+yr;
+  if(e.y===s.y) return s.day+' '+MON[s.m-1]+' – '+e.day+' '+MON[e.m-1]+yr;
+  return s.day+' '+MON[s.m-1]+' '+s.y+' – '+e.day+' '+MON[e.m-1]+' '+e.y;
+}
+
+/* ============ STAMPS ============ */
+function sortedStamps(){
+  return [...stamps].sort((a,b)=>{
+    if(!a.start&&!b.start)return 0; if(!a.start)return 1; if(!b.start)return -1;
+    return sortDir==='desc'? b.start.localeCompare(a.start): a.start.localeCompare(b.start);
+  });
+}
+function renderStamps(animate){
+  const g=$('#stamp-grid'); g.innerHTML='';
+  sortedStamps().forEach((s,i)=>{
+    const photos=s.photos||[]; const el=document.createElement('div');
+    el.className='stamp'+(animate?' animate':'')+(photos.length?' has-photo':'');
+    el.style.setProperty('--c',s.color); el.style.setProperty('--r',(i%2===0?-4:4)+'deg');
+    if(animate) el.style.animationDelay=(90*i)+'ms';
+    el.innerHTML=
+      '<div class="watermark">'+(s.mark||'📍')+'</div>'+
+      (photos.length?'<div class="thumb" style="background-image:url('+photos[0]+')"></div>':'')+
+      (photos.length?'<div class="pcount">📷'+photos.length+'</div>':'')+
+      '<div class="icon">'+s.icon+'</div>'+
+      '<div class="city">'+s.city+'</div>'+
+      '<div class="code">'+(s.code||s.country||'')+'</div>'+
+      '<div class="date">'+(fmtRange(s.start,s.end,false)||'设置日期')+'</div>';
+    el.addEventListener('click',()=>openStampModal(s.id));
+    g.appendChild(el);
+  });
+}
+
+/* ============ LOCKED ============ */
+function renderFuture(){
+  const g=$('#locked-grid'); g.innerHTML='';
+  if(!future.length){ g.innerHTML='<p class="hint-line" style="text-align:center;padding:20px 0;">都盖过啦——在上面添加下一个梦想目的地吧。</p>'; }
+  future.forEach(l=>{
+    const el=document.createElement('div'); el.className='locked'; el.style.setProperty('--c',l.color);
+    el.innerHTML=
+      '<div class="badge">'+l.icon+'</div>'+
+      '<div class="txt"><h4>'+l.city+'</h4>'+
+        '<p>'+(l.country&&l.country!=='—'?l.country+' · ':'')+'点开看小提示</p>'+
+        '<div class="hint">'+(l.hint||'')+'</div></div>'+
+      '<div class="acts">'+
+        '<button class="icon-btn go" title="标记已盖章">✓</button>'+
+        '<button class="icon-btn del" title="删除">✕</button></div>';
+    el.querySelector('.txt').addEventListener('click',()=>el.classList.toggle('revealed'));
+    el.querySelector('.badge').addEventListener('click',()=>el.classList.toggle('revealed'));
+    el.querySelector('.go').addEventListener('click',e=>{e.stopPropagation(); promoteFuture(l.id);});
+    el.querySelector('.del').addEventListener('click',e=>{e.stopPropagation();
+      if(confirm('把「'+l.city+'」从心愿单删掉吗？')){ future=future.filter(x=>x.id!==l.id); save(KEY_F,future); renderFuture(); renderMap(); }});
+    g.appendChild(el);
+  });
+}
+function promoteFuture(id){
+  const l=future.find(x=>x.id===id); if(!l)return;
+  const d=prompt('你什么时候盖的「'+l.city+'」的章？(年-月-日，例如 2026-08-15)\n留空可以之后再填。','');
+  stamps.push({id:uid(),city:l.city,country:l.country,code:(l.country||'').slice(0,3).toUpperCase(),
+    icon:l.icon,mark:'📍',color:l.color,lat:l.lat,lon:l.lon,start:(d||'').trim(),end:'',note:'',photos:[],builtIn:false});
+  future=future.filter(x=>x.id!==id);
+  save(KEY_S,stamps); save(KEY_F,future);
+  renderStamps(false); renderFuture(); renderMap(); switchTab('stamps');
+}
+
+/* ============ PHOTO GALLERY (modal) ============ */
+let tempPhotos=[];
+function renderGallery(){
+  const g=$('#mgallery'); if(!g)return;
+  g.innerHTML = tempPhotos.map((p,i)=>'<div class="pg-item"><img src="'+p+'"><button class="rm" data-i="'+i+'">✕</button></div>').join('')
+    + '<div class="pg-add" id="pg-add">＋<small>加照片</small><input type="file" accept="image/*" id="pg-in" multiple style="display:none"></div>';
+  g.querySelectorAll('.rm').forEach(b=>b.addEventListener('click',()=>{ tempPhotos.splice(+b.dataset.i,1); renderGallery(); }));
+  $('#pg-add').addEventListener('click',()=>$('#pg-in').click());
+  $('#pg-in').addEventListener('change',e=>{ const files=[...e.target.files]; let n=files.length; if(!n)return;
+    files.forEach(f=>compress(f,d=>{ tempPhotos.push(d); if(--n===0) renderGallery(); })); });
+}
+
+/* ============ STAMP MODAL ============ */
+function openStampModal(id){
+  const s=stamps.find(x=>x.id===id); if(!s)return;
+  tempPhotos=[...(s.photos||[])];
+  $('#modal-body').innerHTML=
+    '<h3><span>'+s.icon+'</span>'+s.city+'</h3>'+
+    '<div class="code2">'+(s.country||'')+(s.code?' · '+s.code:'')+'</div>'+
+    '<div class="field"><label>照片（可多张）</label><div class="photo-gallery" id="mgallery"></div></div>'+
+    '<div class="field"><label>盖章日期</label><div class="dates">'+
+      '<div><input type="date" id="mstart" value="'+(s.start||'')+'"></div>'+
+      '<div><input type="date" id="mend" value="'+(s.end||'')+'"></div></div>'+
+      '<p class="hint-line" style="margin:8px 0 0">起 / 止（单日只填左边即可）</p></div>'+
+    '<div class="field"><label>记录 Notes</label><textarea id="mnote" placeholder="写点这里的回忆...">'+(s.note||'')+'</textarea></div>'+
+    '<div class="modal-actions">'+
+      (!s.builtIn?'<button class="btn" id="mdel" style="border-color:var(--coral);color:var(--coral)">删除</button>':'')+
+      '<button class="btn primary" id="msave">保存</button></div>';
+  renderGallery();
+  $('#msave').addEventListener('click',()=>{
+    s.start=$('#mstart').value; s.end=$('#mend').value; s.note=$('#mnote').value; s.photos=tempPhotos;
+    save(KEY_S,stamps); closeModal(); renderStamps(false); renderMap(); });
+  const del=$('#mdel'); if(del) del.addEventListener('click',()=>{
+    if(confirm('删除「'+s.city+'」这枚章？')){ stamps=stamps.filter(x=>x.id!==id); save(KEY_S,stamps); closeModal(); renderStamps(false); renderMap(); }});
+  showModal();
+}
+function openAddStampModal(){
+  tempPhotos=[];
+  $('#modal-body').innerHTML=
+    '<h3><span>🧳</span>添加盖章</h3><div class="code2">添加一个已经去过的地方</div>'+
+    '<div class="field"><label>城市 City</label><input id="ncity" placeholder="e.g. Lisbon"></div>'+
+    '<div class="field"><label>国家 / 地区</label><input id="ncountry" placeholder="e.g. Portugal"></div>'+
+    '<div class="field"><label>盖章日期</label><div class="dates">'+
+      '<div><input type="date" id="nstart"></div><div><input type="date" id="nend"></div></div>'+
+      '<p class="hint-line" style="margin:8px 0 0">起 / 止（单日只填左边）</p></div>'+
+    '<div class="field"><label>照片（可多张，选填）</label><div class="photo-gallery" id="mgallery"></div></div>'+
+    '<div class="field"><label>记录（选填）</label><textarea id="nnote" placeholder="回忆..."></textarea></div>'+
+    '<div class="modal-actions"><button class="btn primary" id="nsave">添加</button></div>';
+  renderGallery();
+  $('#nsave').addEventListener('click',()=>{
+    const city=$('#ncity').value.trim(); if(!city){alert('请填写城市名。');return;}
+    const country=$('#ncountry').value.trim();
+    stamps.push({id:uid(),city,country,code:country.slice(0,3).toUpperCase(),
+      icon:'📍',mark:marks[stamps.length%marks.length],color:palette[stamps.length%palette.length],
+      lat:null,lon:null,start:$('#nstart').value,end:$('#nend').value,note:$('#nnote').value,photos:tempPhotos,builtIn:false});
+    save(KEY_S,stamps); closeModal(); renderStamps(false); renderMap(); });
+  showModal();
+}
+function openAddFutureModal(){
+  $('#modal-body').innerHTML=
+    '<h3><span>🔒</span>添加目的地</h3><div class="code2">一个你正在向往的地方</div>'+
+    '<div class="field"><label>地点</label><input id="fcity" placeholder="例如 巴塔哥尼亚"></div>'+
+    '<div class="field"><label>国家 / 地区（选填）</label><input id="fcountry" placeholder="例如 阿根廷"></div>'+
+    '<div class="field"><label>为什么想去（提示语）</label><textarea id="fhint" placeholder="是什么让它值得一趟..."></textarea></div>'+
+    '<div class="modal-actions"><button class="btn primary" id="fsave">添加目的地</button></div>';
+  $('#fsave').addEventListener('click',()=>{
+    const city=$('#fcity').value.trim(); if(!city){alert('请填写地点名。');return;}
+    future.push({id:uid(),city,country:$('#fcountry').value.trim()||'—',
+      icon:'📌',color:palette[future.length%palette.length],lat:null,lon:null,hint:$('#fhint').value.trim()});
+    save(KEY_F,future); closeModal(); renderFuture(); renderMap(); });
+  showModal();
+}
+function showModal(){ $('#modal-bg').classList.add('show'); }
+function closeModal(){ $('#modal-bg').classList.remove('show'); }
+$('#modal-bg').addEventListener('click',e=>{ if(e.target===$('#modal-bg')) closeModal(); });
+
+/* ============ WORLD MAP ============ */
+const CONTINENTS=[
+  {d:"M120,70 L250,55 L300,70 L330,110 L300,150 L270,150 L250,190 L210,220 L180,200 L160,150 L130,130 Z",c:'#E07A5F'},
+  {d:"M300,255 L345,250 L365,290 L350,340 L320,395 L295,370 L285,320 L295,285 Z",c:'#E9A72B'},
+  {d:"M370,45 L420,40 L435,70 L410,95 L375,85 Z",c:'#6FA8DC'},
+  {d:"M480,215 L560,205 L590,250 L575,310 L535,360 L505,340 L490,285 L475,250 Z",c:'#1A9E8F'},
+  {d:"M455,95 L520,80 L560,70 L610,80 L700,70 L800,80 L880,110 L910,150 L870,175 L830,200 L800,190 L790,175 L760,180 L720,160 L660,150 L600,140 L560,120 L520,120 L480,130 L455,120 Z",c:'#3D7EC9'},
+  {d:"M790,180 L840,178 L860,200 L835,215 L805,205 Z",c:'#3D7EC9'},
+  {d:"M835,300 L905,295 L925,335 L890,360 L845,350 L830,320 Z",c:'#8E5AA6'},
+  {d:"M425,68 L452,64 L458,80 L438,86 L422,78 Z",c:'#9AD0C2'},
+];
+function project(lat,lon){ return { x:(lon+180)/360*1000, y:(90-lat)/180*500 }; }
+// Accurate land geometry (loaded from a real world dataset at runtime).
+// Uses an equirectangular projection tuned to match project() exactly, so pins line up.
+const LAND_PAL=['#4A8FD4','#E8846F','#3FB0A3','#F2C14E','#9A6FB0'];
+let worldLandPaths=null;
+(function loadWorld(){
+  if(typeof d3==='undefined'||typeof topojson==='undefined') return;
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(r=>r.json())
+    .then(topo=>{
+      const feats=topojson.feature(topo,topo.objects.countries).features;
+      const proj=d3.geoEquirectangular().scale(1000/(2*Math.PI)).translate([500,250]);
+      const gp=d3.geoPath(proj);
+      worldLandPaths=feats.map((f,i)=>'<path d="'+(gp(f)||'')+'" fill="'+LAND_PAL[i%LAND_PAL.length]+'" fill-opacity="0.92" stroke="rgba(13,24,38,0.4)" stroke-width="0.35"/>').join('');
+      renderMap();
+    })
+    .catch(()=>{});
+})();
+let mapView={x:380,y:20,w:520,h:260};
+function clampView(){
+  mapView.w=Math.max(220,Math.min(1000,mapView.w)); mapView.h=mapView.w/2;
+  mapView.x=Math.max(-150,Math.min(1000-mapView.w+150,mapView.x));
+  mapView.y=Math.max(-80,Math.min(500-mapView.h+80,mapView.y));
+}
+function applyVB(){ const svg=$('#worldmap-svg'); if(svg) svg.setAttribute('viewBox',mapView.x+' '+mapView.y+' '+mapView.w+' '+mapView.h); }
+function svgPt(cx,cy){ const svg=$('#worldmap-svg'); const r=svg.getBoundingClientRect();
+  return { x:mapView.x+(cx-r.left)/r.width*mapView.w, y:mapView.y+(cy-r.top)/r.height*mapView.h }; }
+function zoomAt(f,cx,cy){ const nw=Math.max(220,Math.min(1000,mapView.w*f));
+  mapView.x=cx-(cx-mapView.x)*(nw/mapView.w); mapView.y=cy-(cy-mapView.y)*(nw/mapView.w);
+  mapView.w=nw; clampView(); applyVB(); }
+function renderMap(){
+  const done=stamps.filter(s=>s.lat!=null&&s.lon!=null);
+  const fut=future.filter(f=>f.lat!=null&&f.lon!=null);
+  const rp=[...done].sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+  let route=''; rp.forEach((s,i)=>{const p=project(s.lat,s.lon);route+=(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)+' ';});
+  let grat=''; for(let lo=-150;lo<=150;lo+=30){const x=(lo+180)/360*1000;grat+='<line class="grat" x1="'+x+'" y1="0" x2="'+x+'" y2="500"/>';}
+  for(let la=-60;la<=60;la+=30){const y=(90-la)/180*500;grat+='<line class="grat" x1="0" y1="'+y+'" x2="1000" y2="'+y+'"/>';}
+  let pins='';
+  done.forEach(s=>{const p=project(s.lat,s.lon);
+    pins+='<g class="pin-done" data-name="'+s.city+' · '+fmtRange(s.start,s.end,true)+'">'+
+      '<circle class="halo" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5"/>'+
+      '<circle class="dot" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4.5"/>'+
+      '<text class="pin-lab" x="'+(p.x+7).toFixed(1)+'" y="'+(p.y+3).toFixed(1)+'">'+s.city+'</text></g>';});
+  fut.forEach(s=>{const p=project(s.lat,s.lon);
+    pins+='<g class="pin-future" data-name="'+s.city+' · 待解锁">'+
+      '<circle class="dot" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="5"/>'+
+      '<text class="pin-lab" x="'+(p.x+7).toFixed(1)+'" y="'+(p.y+3).toFixed(1)+'" style="fill:var(--sun);stroke:#0f1a2b">'+s.city+'</text></g>';});
+  clampView();
+  $('#map-wrap').innerHTML=
+    '<svg id="worldmap-svg" class="worldmap" viewBox="'+mapView.x+' '+mapView.y+' '+mapView.w+' '+mapView.h+'" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">'+
+      '<defs><linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="#173a54"/><stop offset="1" stop-color="#0d1826"/></linearGradient></defs>'+
+      '<rect x="-200" y="-200" width="1400" height="900" fill="url(#ocean)"/>'+
+      grat+
+      (worldLandPaths || CONTINENTS.map(c=>'<path d="'+c.d+'" fill="'+c.c+'" fill-opacity="0.9" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>').join(''))+
+      '<path class="route" d="'+route+'"/>'+pins+
+    '</svg>'+
+    '<div class="map-tip">拖动移动 · 双指/滚轮缩放</div>'+
+    '<div class="map-ctrls">'+
+      '<button id="zin">＋</button><button id="zout">−</button><button id="zreset" style="font-size:13px">⤢</button></div>';
+  // pin clicks
+  $$('#map-wrap .pin-done, #map-wrap .pin-future').forEach(g=>g.addEventListener('click',ev=>{
+    ev.stopPropagation(); $('#map-readout').textContent=g.dataset.name; }));
+  // zoom buttons
+  $('#zin').addEventListener('click',()=>zoomAt(0.8,mapView.x+mapView.w/2,mapView.y+mapView.h/2));
+  $('#zout').addEventListener('click',()=>zoomAt(1.25,mapView.x+mapView.w/2,mapView.y+mapView.h/2));
+  $('#zreset').addEventListener('click',()=>{mapView={x:380,y:20,w:520,h:260};clampView();applyVB();});
+  // pan + pinch
+  const svg=$('#worldmap-svg');
+  let panning=false,sx=0,sy=0,vx=0,vy=0;
+  svg.addEventListener('mousedown',e=>{panning=true;sx=e.clientX;sy=e.clientY;vx=mapView.x;vy=mapView.y;});
+  window.addEventListener('mousemove',e=>{ if(!panning)return; const r=svg.getBoundingClientRect();
+    mapView.x=vx-(e.clientX-sx)/r.width*mapView.w; mapView.y=vy-(e.clientY-sy)/r.height*mapView.h; clampView(); applyVB(); });
+  window.addEventListener('mouseup',()=>panning=false);
+  svg.addEventListener('wheel',e=>{ e.preventDefault(); const p=svgPt(e.clientX,e.clientY); zoomAt(e.deltaY>0?1.12:0.89,p.x,p.y); },{passive:false});
+  let pinchD=0,tvx=0,tvy=0,tsx=0,tsy=0,touchPan=false;
+  svg.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){ touchPan=true; tsx=e.touches[0].clientX;tsy=e.touches[0].clientY;tvx=mapView.x;tvy=mapView.y; }
+    else if(e.touches.length===2){ touchPan=false; pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+  },{passive:false});
+  svg.addEventListener('touchmove',e=>{ e.preventDefault();
+    if(touchPan&&e.touches.length===1){ const r=svg.getBoundingClientRect();
+      mapView.x=tvx-(e.touches[0].clientX-tsx)/r.width*mapView.w; mapView.y=tvy-(e.touches[0].clientY-tsy)/r.height*mapView.h; clampView(); applyVB(); }
+    else if(e.touches.length===2){ const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      if(pinchD){ const mx=(e.touches[0].clientX+e.touches[1].clientX)/2, my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+        const p=svgPt(mx,my); zoomAt(pinchD/nd,p.x,p.y); } pinchD=nd; }
+  },{passive:false});
+  svg.addEventListener('touchend',e=>{ if(e.touches.length===0){touchPan=false;pinchD=0;} });
+  // unplaced chips
+  const up=[...stamps.filter(s=>s.lat==null),...future.filter(f=>f.lat==null)];
+  $('#unplaced').innerHTML= up.length? '还没标到地图上：'+up.map(x=>'<span class="chip">'+x.city+'</span>').join('') : '';
+}
+
+/* ============ BIO PHOTO ============ */
+function renderBioPhoto(){
+  const el=$('#bio-photo');
+  if(bioPhoto){ el.innerHTML='<img src="'+bioPhoto+'"><input type="file" accept="image/*" id="bio-photo-input" style="display:none">'; }
+  el.onclick=()=>$('#bio-photo-input').click();
+  $('#bio-photo-input').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+    compress(f,d=>{bioPhoto=d;save(KEY_BIO,d);renderBioPhoto();});});
+}
+
+/* ============ TABS ============ */
+function switchTab(key){
+  $$('#tabbar button').forEach(b=>b.classList.toggle('active',b.dataset.page===key));
+  $$('.page').forEach(p=>p.classList.remove('active'));
+  $('#page-'+key).classList.add('active');
+  const btn=$('#tabbar button[data-page="'+key+'"]');
+  const titles={bio:['Bio Page','持照人信息'],stamps:['Visa Pages','已盖章的旅程'],
+    map:['Atlas','世界地图'],locked:['Blank Pages','待解锁的目的地'],bday:['Special Page','生日限定']};
+  $('#hdr-label').textContent=titles[key][0]; $('#hdr-title').textContent=titles[key][1];
+  document.documentElement.style.setProperty('--tabcolor',btn.dataset.color);
+  if(key==='stamps') renderStamps(true);
+  if(key==='map') renderMap();
+}
+$$('#tabbar button').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.page)));
+
+/* ============ WIRING ============ */
+$('#cover').addEventListener('click',function(){this.classList.add('open');});
+$('#issue-date').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
+$('#add-stamp').addEventListener('click',openAddStampModal);
+$('#add-future').addEventListener('click',openAddFutureModal);
+$('#sort-stamps').addEventListener('click',function(){
+  sortDir=sortDir==='desc'?'asc':'desc'; save(KEY_SORT,sortDir);
+  this.textContent=sortDir==='desc'?'📅 日期 ↓':'📅 日期 ↑'; renderStamps(false);});
+$('#sort-stamps').textContent=sortDir==='desc'?'📅 日期 ↓':'📅 日期 ↑';
+$('#seal-btn').addEventListener('click',()=>{$('#letter').classList.add('show');burst();});
+$('#ticket-btn').addEventListener('click',()=>{$('#ticket-reveal').classList.add('show');burst();});
+function burst(){ const c=['#2464B4','#F2B705','#E85A4F','#159895','#7B4B94'],L=$('#confetti');
+  for(let i=0;i<60;i++){const t=document.createElement('div');t.className='tile';
+    t.style.left=Math.random()*100+'vw';t.style.background=c[i%5];
+    t.style.borderRadius=Math.random()>.5?'50%':'2px';
+    t.style.animationDuration=(2.2+Math.random()*1.6)+'s';t.style.animationDelay=(Math.random()*.4)+'s';
+    L.appendChild(t);setTimeout(()=>t.remove(),4200);} }
+
+renderStamps(false); renderFuture(); renderBioPhoto(); renderMap();
+
+/* ============ PASSWORD GATE ============ */
+(function(){
+  const GATE_KEY='ap_gate_v1', PASS='qz77';
+  const gate=$('#gate');
+  if(localStorage.getItem(GATE_KEY)==='1'){ gate.classList.add('hidden'); return; }
+  function tryUnlock(){
+    const v=$('#gate-input').value.trim().toLowerCase();
+    if(v===PASS){ localStorage.setItem(GATE_KEY,'1'); gate.classList.add('hidden'); }
+    else{ $('#gate-err').textContent='密码不对，再试一下～'; $('#gate-input').value=''; $('#gate-input').focus(); }
+  }
+  $('#gate-btn').addEventListener('click',tryUnlock);
+  $('#gate-input').addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+})();
+
+/* ============ PWA: SERVICE WORKER ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
