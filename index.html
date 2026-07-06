@@ -42,7 +42,7 @@
     padding:
       max(20px, env(safe-area-inset-top))
       max(20px, env(safe-area-inset-right))
-      max(20px, env(safe-area-inset-bottom))
+      min(14px, env(safe-area-inset-bottom))
       max(20px, env(safe-area-inset-left));
   }
   .passport{
@@ -84,24 +84,24 @@
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
   /* BIO */
-  .bio-hero{ position:relative; overflow:hidden; padding:2px 0 0; margin-bottom:20px;}
-  .bio-hero .role{ font-family:var(--cn); font-size:11px;
-    letter-spacing:1.5px; color:rgba(27,42,65,0.5);}
+  .bio-hero{ position:relative; overflow:hidden; padding:2px 0 0; margin-bottom:22px;}
+  .bio-hero .role{ font-family:var(--cn); font-size:12px;
+    letter-spacing:2px; color:rgba(27,42,65,0.5);}
   .bio-hero .name{ font-family:'Fraunces',var(--cn); font-weight:900;
-    font-size:26px; line-height:1.15; margin:6px 0 0; color:var(--ink);}
+    font-size:32px; line-height:1.15; margin:6px 0 0; color:var(--ink);}
   .photo-slot{ width:104px;height:130px; border:1.5px dashed var(--line); border-radius:8px;
     float:right; margin-left:14px; display:flex;align-items:center;justify-content:center;
     font-size:13px;color:rgba(27,42,65,0.45); text-align:center;line-height:1.5;
     position:relative; overflow:hidden; cursor:pointer; background:var(--paper-2);}
   .photo-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-  .bio-grid{ display:grid; grid-template-columns:auto 1fr; gap:13px 16px; font-size:14px; margin-top:4px;}
-  .bio-grid dt{ font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(27,42,65,0.5);
+  .bio-grid{ display:grid; grid-template-columns:auto 1fr; gap:15px 18px; font-size:16px; margin-top:4px;}
+  .bio-grid dt{ font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(27,42,65,0.5);
     letter-spacing:1px; align-self:center;}
-  .bio-grid dd{ margin:0; font-weight:500; font-size:14.5px;}
+  .bio-grid dd{ margin:0; font-weight:500; font-size:17px;}
   .bio-grid dd b{ color:var(--ink); font-weight:700;}
-  .quote{ margin-top:26px; padding-top:20px; border-top:1px solid var(--line);
-    font-family:'Fraunces',serif; font-size:14px; font-style:italic;
-    color:rgba(27,42,65,0.66); line-height:1.7; letter-spacing:.2px;}
+  .quote{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line);
+    font-family:'Fraunces',serif; font-size:16px; font-style:italic;
+    color:rgba(27,42,65,0.66); line-height:1.75; letter-spacing:.2px;}
   .backup-row{ display:flex; gap:10px; justify-content:center; margin-top:56px;}
   .backup-row .icon-btn{ width:32px;height:32px; opacity:.35; color:var(--ink);}
   .backup-row .icon-btn:active{ opacity:.7;}
@@ -258,25 +258,30 @@
   .ticket-reveal.show{ display:block;}
   .ticket{ display:flex; text-align:left; border-radius:16px; overflow:hidden;
     box-shadow:0 14px 30px rgba(0,0,0,.22); background:var(--paper);}
-  .ticket-main{ flex:1; padding:16px 14px 16px 18px; min-width:0;}
-  .t-brand{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
-  .t-brand .bp{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:1.5px; color:var(--coral); font-weight:600;}
-  .t-brand .no{ font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(27,42,65,.4);}
-  .t-row{ display:flex; gap:12px; margin-bottom:13px;}
-  .t-row > .t-cell{ flex:1; min-width:0;}
-  .t-cell label{ display:block; font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:1px; color:rgba(27,42,65,.45); margin-bottom:3px;}
-  .t-cell b{ font-family:'Fraunces',var(--cn); font-size:14.5px; color:var(--ink); font-weight:600;}
-  .t-route{ display:flex; align-items:center; gap:10px; margin-bottom:13px;}
-  .t-route .plane{ color:var(--coral); font-size:16px;}
-  .t-route .secret{ color:var(--coral); letter-spacing:3px;}
-  .ticket-stub{ width:92px; flex-shrink:0; background:linear-gradient(160deg,#2464B4,#159895);
+  .ticket-main{ flex:1; padding:14px 12px 14px 16px; min-width:0;}
+  .t-brand-stack{ margin-bottom:13px;}
+  .t-brand-stack .bp{ display:block; font-family:'JetBrains Mono',monospace; font-size:9px;
+    letter-spacing:.5px; color:var(--coral); font-weight:600; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;}
+  .t-brand-stack .no{ display:block; font-family:'JetBrains Mono',monospace; font-size:8.5px;
+    color:rgba(27,42,65,.4); margin-top:3px;}
+  .tk-field{ margin-bottom:11px; min-width:0;}
+  .tk-field label{ display:block; font-family:'JetBrains Mono',monospace; font-size:7.5px;
+    letter-spacing:.5px; color:rgba(27,42,65,.45); margin-bottom:3px; white-space:nowrap;}
+  .tk-field b{ font-family:'Fraunces',var(--cn); font-size:14px; color:var(--ink); font-weight:600;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;}
+  .t-route{ display:flex; align-items:center; gap:8px; margin-bottom:11px;}
+  .t-route .tk-field{ flex:1; min-width:0; margin-bottom:0;}
+  .t-route .secret{ color:var(--coral); letter-spacing:2px;}
+  .ticket-stub{ width:76px; flex-shrink:0; background:linear-gradient(160deg,#2464B4,#159895);
     color:var(--paper); display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:9px; padding:12px 8px; position:relative; text-align:center; border-left:2px dashed rgba(251,246,237,.55);}
+    gap:8px; padding:12px 6px; position:relative; text-align:center; border-left:2px dashed rgba(251,246,237,.55);}
   .ticket-stub::before, .ticket-stub::after{ content:''; position:absolute; left:-10px; width:20px;height:20px;border-radius:50%; background:var(--paper);}
   .ticket-stub::before{ top:-10px;} .ticket-stub::after{ bottom:-10px;}
-  .ticket-stub .lock{ font-size:20px;}
-  .ticket-stub .cls{ font-family:'JetBrains Mono',monospace; font-size:9px; line-height:1.7; letter-spacing:1px;}
-  .barcode{ width:74%; height:32px;
+  .ticket-stub .lock{ font-size:18px;}
+  .ticket-stub .cls{ font-family:'JetBrains Mono',monospace; font-size:7.5px; line-height:1.6;
+    letter-spacing:.2px; white-space:nowrap;}
+  .barcode{ width:82%; height:28px;
     background: repeating-linear-gradient(90deg, var(--paper) 0 2px, transparent 2px 4px, var(--paper) 4px 5px, transparent 5px 8px);}
   .ticket-note{ text-align:center; margin-top:12px; font-family:'Fraunces',var(--cn); font-style:italic; color:rgba(27,42,65,.6); font-size:13px;}
   .confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden;}
@@ -425,7 +430,7 @@
       <div class="toolbar">
         <button class="btn primary" id="add-climb">＋ 添加路线</button>
       </div>
-      <p class="hint-line">攀岩专属日志 · 记路线、难度、岩馆或岩场，点卡片查看/编辑。</p>
+      <p class="hint-line">记路线、难度、岩馆或岩场，点卡片查看/编辑</p>
       <div class="climb-grid" id="climb-grid"></div>
     </div>
 
@@ -467,7 +472,7 @@
       <div class="toolbar">
         <button class="btn primary" id="add-future">＋ 添加目的地</button>
       </div>
-      <p class="hint-line">待解锁的目的地 · 点卡片看提示，✓ 标记已盖章（自动移到「已盖章」），✕ 删除。</p>
+      <p class="hint-line">点卡片看提示，✓ 标记已盖章（自动移到「已盖章」），✕ 删除</p>
       <div class="locked-grid" id="locked-grid"></div>
     </div>
 
@@ -489,20 +494,18 @@
         <div class="ticket-reveal" id="ticket-reveal">
           <div class="ticket">
             <div class="ticket-main">
-              <div class="t-brand"><span class="bp">BOARDING PASS · 秘密旅行</span><span class="no">NO. 08·15</span></div>
-              <div class="t-row">
-                <div class="t-cell"><label>PASSENGER 旅客</label><b>大清早读第七章</b></div>
-                <div class="t-cell"><label>SEAT 座位</label><b>1A · 靠窗</b></div>
+              <div class="t-brand-stack">
+                <span class="bp">BOARDING PASS · 秘密旅行</span>
+                <span class="no">NO. 08·15</span>
               </div>
+              <div class="tk-field"><label>PASSENGER 旅客</label><b>大清早读第七章</b></div>
+              <div class="tk-field"><label>SEAT 座位</label><b>1A · 靠窗</b></div>
               <div class="t-route">
-                <div class="t-cell"><label>FROM 出发</label><b>London</b></div>
-                <span class="plane">✈</span>
-                <div class="t-cell"><label>TO 目的地</label><b class="secret">? ? ?</b></div>
+                <div class="tk-field"><label>FROM 出发</label><b>London</b></div>
+                <div class="tk-field"><label>TO 目的地</label><b class="secret">? ? ?</b></div>
               </div>
-              <div class="t-row">
-                <div class="t-cell"><label>DATE 日期</label><b>15–16 Aug</b></div>
-                <div class="t-cell"><label>DRESS CODE 着装</label><b>舒适 · Comfy</b></div>
-              </div>
+              <div class="tk-field"><label>DATE 日期</label><b>15–16 Aug</b></div>
+              <div class="tk-field" style="margin-bottom:0"><label>DRESS CODE 着装</label><b>舒适 · Comfy</b></div>
             </div>
             <div class="ticket-stub">
               <div class="lock">🔒</div>
